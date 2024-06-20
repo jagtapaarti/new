@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suppliers List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #commodityDropdown {
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <select id="commodityDropdown" onchange="filterCommodities()">
+            <option value="">Select a Commodity</option>
+            <!-- Commodity options will be populated dynamically -->
+        </select>
+    </div>
+    <div id="commoditiesList"></div>
+
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            populateDropdown();
+        });
+
+        function populateDropdown() {
+            var dropdown = document.getElementById('commodityDropdown');
+            var commodities = ["Cabinet", "Desk", "Chair"]; // Replace with actual categories from your list
+            for (var i = 0; i < commodities.length; i++) {
+                var option = document.createElement('option');
+                option.value = commodities[i];
+                option.text = commodities[i];
+                dropdown.add(option);
+            }
+        }
+
+        function filterCommodities() {
+            var selectedCommodity = document.getElementById('commodityDropdown').value;
+            var listDiv = document.getElementById('commoditiesList');
+            listDiv.innerHTML = ''; // Clear previous results
+
+            if (selectedCommodity) {
+                var queryUrl = _spPageContextInfo.webAbsoluteUrl + "/_api/web/lists/getbytitle('demo_suppliers')/items?$filter=Commodity eq '" + selectedCommodity + "'";
+
+                fetch(queryUrl, {
+                    headers: {
+                        'Accept': 'application/json;odata=verbose'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    var items = data.d.results;
+                    if (items.length > 0) {
+                        var html = '<ul>';
+                        for (var i = 0; i < items.length; i++) {
+                            html += '<li><a href="' + items[i].Site_x0020_address + '" target="_blank">' + items[i].Title + '</a></li>';
+                        }
+                        html += '</ul>';
+                        listDiv.innerHTML = html;
+                    } else {
+                        listDiv.innerHTML = 'No suppliers found for the selected commodity.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suppliers:', error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
